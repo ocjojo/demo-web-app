@@ -1,0 +1,56 @@
+security:
+  encoders:
+    # this internal class is used by Symfony to represent in-memory users
+    Symfony\Component\Security\Core\User\User: "bcrypt"
+    App\Entity\User: "bcrypt"
+  # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+  providers:
+    chain_provider:
+      chain:
+        providers: [password_provider, backend_users, in_memory]
+    password_provider:
+      entity:
+        # the class of the entity that represents users
+        class: 'App\Entity\User'
+        # the property to query by - e.g. username, email, etc
+        property: "username"
+    fido_provider:
+      entity:
+        # the class of the entity that represents users
+        class: 'App\Entity\FidoUser'
+        # the property to query by - e.g. username, email, etc
+        property: "token"
+    google_provider:
+      entity:
+        # the class of the entity that represents users
+        class: 'App\Entity\OAuth'
+        # the property to query by - e.g. username, email, etc
+        property: "email"
+    in_memory: { memory: null }
+    backend_users:
+      memory:
+        users:
+          devs:
+            {
+              password: "$2y$13$wTeSG7a3TmCWdf5WgHBQmOznYHfzSErPh0Irc4IDAWg8UczboWm/6",
+              roles: ["ROLE_ADMIN", "ROLE_SUPER_ADMIN"],
+            }
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      anonymous: true
+      json_login:
+        check_path: /passwordlogin
+        provider: chain_provider
+      # activate different ways to authenticate
+      # https://symfony.com/doc/current/security.html#firewalls-authentication
+      # https://symfony.com/doc/current/security/impersonating_user.html
+      # switch_user: true
+
+  # Easy way to control access for large sections of your site
+  # Note: Only the *first* access control that matches will be used
+  access_control:
+    # - { path: ^/admin, roles: ROLE_ADMIN }
+    # - { path: ^/profile, roles: ROLE_USER }

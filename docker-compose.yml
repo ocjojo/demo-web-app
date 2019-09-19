@@ -1,0 +1,41 @@
+version: "3.7"
+
+services:
+  web:
+    build:
+      context: .docker
+      dockerfile: web.dockerfile
+    container_name: web
+    networks:
+      - web
+      - default
+    expose:
+      - 80
+    depends_on:
+      - db
+    volumes:
+      - ".:/var/www/thesis"
+      - "./.docker/nginx.conf:/etc/nginx/sites-enabled/default:ro"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.frontend.rule=Host:thesis.local
+
+  db:
+    user: "1000:50"
+    image: mysql:5.7
+    expose:
+      - 3306
+    volumes:
+      - "./.db_data:/var/lib/mysql"
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+
+networks:
+  web:
+    external: true
